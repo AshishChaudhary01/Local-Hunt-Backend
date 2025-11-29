@@ -8,11 +8,13 @@ import com.example.LocalHunt.exceptions.ProductNotFoundException;
 import com.example.LocalHunt.product.Product;
 import com.example.LocalHunt.product.ProductDTO;
 import com.example.LocalHunt.product.ProductRepository;
-import com.example.LocalHunt.product.ProductRequest;
+import com.example.LocalHunt.product.productVariant.ProductVariant;
+import com.example.LocalHunt.product.productVariant.ProductVariantRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UpdateProductCommandHandler implements Command<UpdateProductCommand, ProductDTO> {
@@ -33,13 +35,10 @@ public class UpdateProductCommandHandler implements Command<UpdateProductCommand
         Category updatedToCategory = (Category) categoryRepository.findByName(command.getRequest().getCategory())
                 .orElseThrow(CategoryNotFoundException::new);
 
-        Product updatedProduct = new Product(command.getRequest(), updatedToCategory);
-        updatedProduct.setId(existingProduct.getId());
-        updatedProduct.setAverageRating(existingProduct.getAverageRating());
-        updatedProduct.setTotalReviews(existingProduct.getTotalReviews());
-        updatedProduct.setCreatedAt(existingProduct.getCreatedAt());
+        //Update product details from request
+        existingProduct.updateFromRequest(command.getRequest(), updatedToCategory);
 
-        productRepository.save(updatedProduct);
-        return ResponseEntity.ok(new ProductDTO(updatedProduct));
+        productRepository.save(existingProduct);
+        return ResponseEntity.ok(new ProductDTO(existingProduct));
     }
 }

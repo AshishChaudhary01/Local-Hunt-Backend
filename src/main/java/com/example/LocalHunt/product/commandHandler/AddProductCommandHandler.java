@@ -8,8 +8,11 @@ import com.example.LocalHunt.product.Product;
 import com.example.LocalHunt.product.ProductDTO;
 import com.example.LocalHunt.product.ProductRepository;
 import com.example.LocalHunt.product.ProductRequest;
+import com.example.LocalHunt.product.productVariant.ProductVariant;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class AddProductCommandHandler implements Command<ProductRequest, ProductDTO> {
@@ -24,9 +27,20 @@ public class AddProductCommandHandler implements Command<ProductRequest, Product
 
     @Override
     public ResponseEntity<ProductDTO> execute(ProductRequest request) {
+        // Validate category
         Category category = (Category) categoryRepository.findByName(request.getCategory())
                 .orElseThrow(CategoryNotFoundException::new);
+
+        // Create product
         Product newProduct = new Product(request, category);
+
+        // --- NEW: Add variants ---
+        List<ProductVariant> variants = request.getVariants()
+                .stream()
+                .map(variantRequest -> new ProductVariant(variantRequest, newProduct))
+                .toList();
+
+        newProduct.setVariants(variants);
         productRepository.save(newProduct);
         return ResponseEntity.ok(new ProductDTO(newProduct));
     }

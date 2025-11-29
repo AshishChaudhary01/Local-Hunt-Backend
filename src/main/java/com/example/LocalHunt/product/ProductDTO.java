@@ -1,16 +1,16 @@
 package com.example.LocalHunt.product;
 
 import com.example.LocalHunt.enums.ProductStatus;
+import com.example.LocalHunt.product.productVariant.ProductVariantDTO;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class ProductDTO {
     private String id;
     private String title;
     private String description;
-    private Double price;
-    private Integer stock;
-    private Boolean available;
     private Double lat;
     private Double lng;
     private Boolean pickupAvailable;
@@ -19,14 +19,12 @@ public class ProductDTO {
     private String imageUrl;
     private String categoryId;
     private String category;
+    private List<ProductVariantDTO> variants;
 
     public ProductDTO(Product product) {
         this.id = product.getId();
         this.title = product.getTitle();
         this.description = product.getDescription();
-        this.price = product.getPrice();
-        this.stock = product.getStock();
-        this.available = product.getAvailable();
         this.lat = product.getLat();
         this.lng = product.getLng();
         this.pickupAvailable = product.getPickupAvailable();
@@ -35,5 +33,9 @@ public class ProductDTO {
         this.imageUrl = product.getImageUrl();
         this.categoryId = product.getCategory().getId();
         this.category = product.getCategory().getName();
+        this.variants = product.getVariants()
+                .stream()
+                .map(ProductVariantDTO::new)
+                .toList();
     }
 }

@@ -1,8 +1,9 @@
 package com.example.LocalHunt.product;
 
 import com.example.LocalHunt.category.Category;
-import com.example.LocalHunt.enums.ProductSize;
 import com.example.LocalHunt.enums.ProductStatus;
+import com.example.LocalHunt.product.productVariant.ProductVariant;
+import com.example.LocalHunt.product.productVariant.ProductVariantRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -13,6 +14,8 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,20 +39,6 @@ public class Product {
     @Size(min = 10, max = 99, message = "Description must be within 10-99 characters")
     @Column(name = "description")
     private String description;
-
-    @PositiveOrZero(message = "Price cannot be negative")
-    @NotNull
-    @Column(name = "price")
-    private Double price;
-
-    @NotNull
-    @Min(value = 0, message = "Stock count cannot be negative")
-    @Max(value = 9999, message = "Stock count cannot be more than 9999")
-    @Column(name = "stock")
-    private Integer stock;
-
-    @Column(name = "available")
-    private Boolean available;
 
     @Column(name = "lat")
     private Double lat;
@@ -88,12 +77,13 @@ public class Product {
     @JoinColumn(name = "category_id", referencedColumnName = "id")
     private Category category;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariant> variants = new ArrayList<>();
+
+    //Helper Constructor method to create a new product
     public Product(ProductRequest request, Category category) {
         this.title = request.getTitle();
         this.description = request.getDescription();
-        this.price = request.getPrice();
-        this.stock = request.getStock();
-        this.available = request.getAvailable();
         this.lat = request.getLat();
         this.lng = request.getLng();
         this.pickupAvailable = request.getPickupAvailable();
@@ -101,5 +91,33 @@ public class Product {
         this.status = request.getStatus();
         this.imageUrl = request.getImageUrl();
         this.category = category;
+    }
+
+    //Helper Constructor method to update an existing product
+    public void updateFromRequest(ProductRequest request, Category category) {
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.lat = request.getLat();
+        this.lng = request.getLng();
+        this.pickupAvailable = request.getPickupAvailable();
+        this.deliveryAvailable = request.getDeliveryAvailable();
+        this.status = request.getStatus();
+        this.imageUrl = request.getImageUrl();
+        this.category = category;
+
+        // Safe way: remove old variants safely
+        List<ProductVariant> existingVariants = new ArrayList<>(this.variants);
+        for (ProductVariant v : existingVariants) {
+            v.setProduct(null); // detach from parent
+            this.variants.remove(v);
+        }
+
+        // Add new variants from request (if any)
+        if (request.getVariants() != null) {
+            for (ProductVariantRequest pvr : request.getVariants()) {
+                ProductVariant variant = new ProductVariant(pvr, this);
+                this.variants.add(variant);
+            }
+        }
     }
 }

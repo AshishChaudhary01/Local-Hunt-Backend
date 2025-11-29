@@ -1,17 +1,18 @@
 package com.example.LocalHunt.product;
 
 import com.example.LocalHunt.enums.ProductStatus;
+import com.example.LocalHunt.product.productVariant.ProductVariantRequest;
 import lombok.Getter;
 import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @ToString
 public class ProductRequest {
     private String title;
     private String description;
-    private Double price;
-    private Integer stock;
-    private Boolean available;
     private Double lat;
     private Double lng;
     private Boolean pickupAvailable;
@@ -19,5 +20,5 @@ public class ProductRequest {
     private ProductStatus status;
     private String imageUrl;
     private String category;
-    private String productSize;
+    private final List<ProductVariantRequest> variants = new ArrayList<>();
 }
